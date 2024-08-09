@@ -4,6 +4,8 @@ import (
 	"fmt"
 	hello "go_learn/hello"
 	"os"
+	"strings"
+	"unicode/utf8"
 )
 
 func main() {
@@ -21,7 +23,11 @@ func main() {
 
 	//for_()
 
-	slice()
+	//slice()
+
+	//str()
+
+	map_()
 }
 
 func data() {
@@ -37,11 +43,6 @@ func data() {
 	// 此处是 取反
 	a ^= a
 	fmt.Println(a)
-
-	//var b int
-	//b = 100
-
-	//var b int = 100
 
 	var b = 100
 	fmt.Println(b)
@@ -66,6 +67,7 @@ func data() {
 	_ = min(1, 2, -1, 1.2)
 	_ = max(100, 22, -1, 1.12)
 
+	fmt.Println(min(1, 1, 2, '1', 'a'))
 }
 
 func cnst() {
@@ -120,7 +122,9 @@ func cnst() {
 }
 
 func packg() {
-	fmt.Println(hello.FuncHello())
+	fmt.Println(hello.Hello("chen"))
+
+	fmt.Println(hello.Bye("chen"))
 }
 
 func dataType() {
@@ -150,12 +154,19 @@ func dataType() {
 	//byte	等价 uint8 可以表达ANSCII字符
 	//rune	等价 int32 可以表达Unicode字符
 	//string	字符串即字节序列，可以转换为[]byte类型即字节切片
+	str := "123456aaa"
+	println(str[1:3])
 
 	//数组	[5]int，长度为5的整型数组
 	ints := [5]int{0, 1, 2, 3, 4}
 	for item := range ints {
 		println(item)
 	}
+	str2 := [10]string{"1", "a"}
+	for item := range str2 {
+		println(item)
+	}
+
 	//切片	[]float64，64位浮点数切片
 	//映射表	map[string]int，键为字符串类型，值为整型的映射表
 	//结构体	type Gopher struct{}，Gopher结构体
@@ -195,6 +206,8 @@ func io() {
 		age     int
 		address string
 	}
+	//var p1 person = person{}
+	//fmt.Println(p1)
 	fmt.Printf("%v\n", person{"lihua", 22, "beijing"})
 	fmt.Printf("%+v\n", person{"lihua", 22, "beijing"})
 	fmt.Printf("%#v\n", person{"lihua", 22, "beijing"})
@@ -280,7 +293,7 @@ func slice() {
 	//l := 1
 	//var b [l]int
 
-	//slice1 := new([]int)        // 指针
+	_ = new([]int) // 指针
 	//slice1 = []int{1, 2, 3} // 值
 	//var slice1 []int            // 值
 	slice1 := make([]int, 5, 5) // 推荐使用make来创建一个空切片，只是对于切片而言，make函数接收三个参数：类型，长度，容量
@@ -325,4 +338,95 @@ func slice() {
 
 	// 清空
 	_ = slice3[:0:0]
+}
+
+func str() {
+	str1 := `这是一个原生字符串，换行
+	tab缩进，\t制表符但是无效,换行
+	"这是一个普通字符串"
+	
+	结束`
+
+	fmt.Println(str1)
+
+	str2 := "this is a string"
+	fmt.Println(string(str2[0]))   // 字节
+	fmt.Println(string(str2[0:2])) // 字节
+
+	//str2[0] = 'a' // 无法通过编译
+	str2 = "new str" //可以覆盖
+
+	//str2 := "this is a string"
+	//str3 := string(str2[0:2])
+	//str4 := []rune("12")
+	//fmt.Println(append([]rune(str3), str4...)) // 字节
+
+	str3 := "this is a string"
+	// 显式类型转换为字节切片
+	bytes1 := []byte(str3)
+	fmt.Println(bytes1)
+	// 显式类型转换为字符串
+	fmt.Println(string(bytes1))
+
+	var dst string
+	desBytes := make([]byte, len(str3))
+	copy(desBytes, str3) // [116 104 105 115 32 105 115 32 97 32 115 116 114 105 110 103]
+	dst = string(desBytes)
+	//dst = strings.Clone(str3)
+	fmt.Println(str3, dst)
+
+	desBytes = append(desBytes, "123"...) //拼接
+
+	desBytes = append(desBytes[1:2], 'a')
+
+	// 性能相对高
+	builder := strings.Builder{}
+	builder.WriteString("this is a string ")
+	builder.WriteString("that is a int")
+	fmt.Println(builder.String())
+
+	str4 := "hello 世界！!!" // 中文字符占3个字节，
+	for i, w := 0, 0; i < len(str4); i += w {
+		r, width := utf8.DecodeRuneInString(str4[i:])
+		fmt.Println(string(r))
+		w = width
+	}
+
+	//for len(str4) > 0 {
+	//	r, size := utf8.DecodeRuneInString(str4)
+	//	fmt.Printf("%c %v\n", r, size)
+	//	str4 = str4[size:]
+	//}
+
+	for i, r := range str4 {
+		fmt.Printf("%d, %d,%x,%s\n", i, r, r, string(r))
+	}
+}
+
+func map_() {
+	mp := make(map[string]int)
+	mp["one"] = 1
+	mp["two"] = 2
+
+	fmt.Println(mp)
+
+	for k, v := range mp {
+		fmt.Println(k, v)
+	}
+
+	delete(mp, "two")
+	fmt.Println(mp)
+
+	value, ok := mp["one"]
+	fmt.Println("value:", value, ", ok:", ok)
+
+	value, ok = mp["two"]
+	fmt.Println("value:", value, ", ok:", ok)
+
+	// 安全的map操作
+	m1 := map[string]int{"one": 1, "two": 2}
+	m2 := make(map[string]int)
+	for k, v := range m1 {
+		m2[k] = v * 2
+	}
 }
