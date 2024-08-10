@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	hello "go_learn/hello"
+	"math/rand"
 	"os"
 	"strings"
 	"unicode/utf8"
+	"unsafe"
 )
 
 func main() {
@@ -27,7 +30,11 @@ func main() {
 
 	//str()
 
-	map_()
+	//map_()
+
+	//point()
+
+	struct_()
 }
 
 func data() {
@@ -350,8 +357,8 @@ func str() {
 	fmt.Println(str1)
 
 	str2 := "this is a string"
-	fmt.Println(string(str2[0]))   // 字节
-	fmt.Println(string(str2[0:2])) // 字节
+	fmt.Println(string(str2[0])) // 字节
+	fmt.Println(str2[0:2])
 
 	//str2[0] = 'a' // 无法通过编译
 	str2 = "new str" //可以覆盖
@@ -429,4 +436,105 @@ func map_() {
 	for k, v := range m1 {
 		m2[k] = v * 2
 	}
+
+	clear(m2) // clear
+
+	set := make(map[int]struct{}, 10)
+	for i := 0; i < 10; i++ {
+		set[rand.Intn(100)] = struct{}{}
+	}
+	fmt.Println(set)
+}
+
+func point() {
+
+	num := 100
+	p1 := &num
+
+	fmt.Println(p1)
+	fmt.Println(*p1)
+
+	//p2 := new(*int)
+
+	var p3 *int = new(int)
+	fmt.Println(*p3)
+
+	fmt.Println(*new(string))
+	fmt.Println(*new(int))
+	fmt.Println(*new([5]int))
+	fmt.Println(*new([]float64))
+
+	p4 := new(string)
+	*p4 = "hello world"
+	println(p4)
+
+	// 返回值是类型指针
+	// 接收参数是类型
+	// 专用于给指针分配内存空间
+	_ = new(int)    // int指针
+	_ = new(string) // string指针
+	_ = new([]int)  // 整型切片指针
+
+	// 返回值是值，不是指针
+	// 接收的第一个参数是类型，不定长参数根据传入类型的不同而不同
+	// 专用于给切片，映射表，通道分配内存。
+	_ = make([]int, 10, 100)     // 长度为10，容量100的整型切片
+	_ = make(map[string]int, 10) // 容量为10的映射表
+	_ = make(chan int, 10)       // 缓冲区大小为10的通道
+
+}
+
+func struct_() {
+	type Person struct {
+		name string
+		age  int
+	}
+
+	type Student struct {
+		Person
+		school string
+	}
+
+	type Employee struct {
+		p   Person
+		job string
+	}
+
+	student := Student{
+		Person: Person{name: "jack", age: 18},
+		school: "lili school",
+	}
+	fmt.Println(student.name)
+
+	employee := Employee{
+		p: Person{
+			name: "chen",
+			age:  22,
+		},
+		job: "coder",
+	}
+	fmt.Println(employee)
+
+	// 结构体指针
+	p := &Person{
+		name: "jack",
+		age:  18,
+	}
+	// 在编译的时候会转换为(*p).name ，(*p).age，其实还是需要解引用，不过在编码的时候可以省去，算是一种语法糖
+	fmt.Println((*p).age, p.name)
+
+	type User struct {
+		ID       int    `json:"idddd"`
+		Name     string `json:"username"`
+		Password string `json:"-"` // 忽略该字段
+	}
+
+	user := User{ID: 1, Name: "Alice", Password: "secret"}
+	fmt.Println(user) // 输出 {1 Alice secret}
+
+	// 序列化为JSON
+	data1, _ := json.Marshal(user)
+	fmt.Println(string(data1)) // 输出 {"id":1,"username":"Alice"}
+
+	fmt.Println("unsafe.Sizeof(Student{}): ", unsafe.Sizeof(Student{}))
 }
