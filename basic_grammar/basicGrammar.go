@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	hello "go_learn/hello"
+	"math"
 	"math/rand"
 	"os"
 	"strings"
@@ -34,7 +36,14 @@ func main() {
 
 	//point()
 
-	struct_()
+	//func_()
+
+	//Do()
+
+	//ParameterPreCalculation()
+
+	//struct_()
+
 }
 
 func data() {
@@ -484,6 +493,134 @@ func point() {
 
 }
 
+var fuc1 func()
+
+func Div(a float64, b float64) (float64, error) {
+	if a == 0 {
+		return math.NaN(), errors.New("0不能作为被除数")
+	}
+	return a / b, nil
+}
+
+func SumAndMul(a, b int) (c, d int) { // c int, d 报错
+	c = a + b
+	d = a * b
+	return
+}
+
+func SumAndMul2(a, b int) (c, d int) {
+	c = a + b
+	d = a * b
+	return // c, d
+	// c，d将不会被返回
+	//return a + b, a * b
+}
+
+func func_() {
+	fib := Fib(1)
+	for i := 0; i < 10; i++ {
+		fmt.Println(fib())
+	}
+
+	//sum := Sum(5)
+	//fmt.Println(sum(1, 2))
+	//fmt.Println(sum(1, 2))
+	//fmt.Println(sum(1, 2))
+	//
+	///* nextNumber 为一个函数，函数 i 为 0 */
+	//nextNumber := getSequence()
+	//
+	///* 调用 nextNumber 函数，i 变量自增 1 并返回 */
+	//fmt.Println(nextNumber())
+	//fmt.Println(nextNumber())
+	//fmt.Println(nextNumber())
+	//
+	///* 创建新的函数 nextNumber1，并查看结果 */
+	//nextNumber1 := getSequence()
+	//fmt.Println(nextNumber1())
+	//fmt.Println(nextNumber1())
+}
+
+// Sum
+// 匿名函数引用了参数sum，即便Sum函数已经执行完毕，虽然已经超出了它的生命周期，但是对其返回的函数传入参数，依旧可以成功的修改其值，这一个过程就是闭包。
+// 事实上参数sum已经逃逸到了堆上，只要其返回值函数的生命周期没有结束，就不会被回收掉。
+func Sum(sum int) func(a int, b int) int {
+	return func(a, b int) int {
+		sum += a + b
+		return sum
+	}
+}
+
+func getSequence() func() int {
+	i := 0
+	return func() int {
+		i += 1
+		return i
+	}
+}
+
+func Fib(n int) func() int {
+	if n < 1 {
+		n = 1
+	}
+	a, b := n, n
+	return func() int {
+		a, b = b, a+b
+		return a
+	}
+}
+
+// Do
+// 延迟调用
+// defer 关键字描述的一个匿名函数会在函数返回之前执行。
+// 结束后按照栈弹出执行
+func Do() {
+	defer func() {
+		fmt.Println("1")
+	}()
+	defer func() {
+		fmt.Println("2")
+	}()
+	defer func() {
+		fmt.Println("3")
+	}()
+	defer func() {
+		fmt.Println("4")
+	}()
+	//
+	fmt.Println("2")
+	defer func() {
+		fmt.Println("5")
+	}()
+	fmt.Println("6")
+}
+
+// ParameterPreCalculation
+// 对于defer直接作用的函数而言，它的参数是会被预计算的，这也就导致了第一个例子中的奇怪现象，
+// 对于这种情况，尤其是在延迟调用中将函数返回值作为参数的情况尤其需要注意。
+func ParameterPreCalculation() {
+	var a, b int
+	a = 1
+	b = 2
+
+	defer fmt.Println("defer: ", sum(a, b)) // 1
+
+	defer func() {
+		fmt.Println("defer+closure: ", sum(a, b))
+	}()
+
+	defer func(num int) {
+		fmt.Println("defer+closure+param: ", num)
+	}(sum(a, b))
+
+	a = 3
+	b = 4
+}
+
+func sum(a int, b int) int {
+	return a + b
+}
+
 func struct_() {
 	type Person struct {
 		name string
@@ -537,4 +674,27 @@ func struct_() {
 	fmt.Println(string(data1)) // 输出 {"id":1,"username":"Alice"}
 
 	fmt.Println("unsafe.Sizeof(Student{}): ", unsafe.Sizeof(Student{}))
+}
+
+type Slice []int
+
+//	func (s Slice) Set(i int, v int) {
+//		s[i] = v
+//	}
+func (s *Slice) Set(i int, v int) {
+	(*s)[i] = v
+}
+
+//	func (s Slice) Append(a int) {
+//		s = append(s, a)
+//	}
+func (s *Slice) Append(a int) {
+	*s = append(*s, a)
+}
+
+func type_() {
+	s := make(Slice, 1, 2)
+	s.Set(0, 1)
+	s.Append(2)
+	fmt.Println(s)
 }
